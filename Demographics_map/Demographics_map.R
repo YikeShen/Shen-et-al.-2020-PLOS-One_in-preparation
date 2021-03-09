@@ -21,9 +21,6 @@ qualtricsprocessing <- qualtricsraw %>% filter(str_detect(gc, "3|1")) %>%
 #install.packages('ggmap')
 #install.packages('maps')
 #devtools::install_github("dkahle/ggmap")
-#library(zipcodeR)
-#library(zipcode)
-#zip.code
 library("usa")
 library(plyr)
 library(ggmap)
@@ -31,7 +28,7 @@ library(viridis)
 library(maps)
 
 zcs <- usa::zipcodes %>% as.data.frame()
-register_google(key = "[AIzaSyA2jw0ZeOeZ5SWk7myYFEQNMfT6uJFOKSo]")
+register_google(key = "[#####yourkey]")
 has_google_key()
 
 Qual.ZIPCode<-aggregate(data.frame(count=qualtricsprocessing$ZIP),list(zip=qualtricsprocessing$ZIP),length)
