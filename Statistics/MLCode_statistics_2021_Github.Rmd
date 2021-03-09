@@ -1,0 +1,510 @@
+---
+title: "R Notebook"
+
+---
+
+```{r}
+setwd("YOURWORKINGDIRECTORY")
+#install.packages("foreign")
+#install.packages('pander')
+#install.packages("codebook")
+
+
+library(codebook)
+library(foreign)
+library(dplyr)
+library(stringr)
+
+filter <- dplyr::filter
+select <- dplyr::select
+qualtricsraw = read.spss("ESP804 S19.foodsafetyonly.sav", to.data.frame=TRUE)
+qualtricsraw=as.data.frame(qualtricsraw)
+qualtricsraw[] <- lapply(qualtricsraw, as.character)
+
+#Tidying data, Only for the good complete (1 and 3) and good data
+qualtricsprocessing <- qualtricsraw %>% filter(str_detect(gc, "3|1")) %>% select(YOB,GENDER,RACEETH,MARITALSTATUS,EDUCATION,EMPLOYED,ZIP,RESIDENCETYPE,URBANRURAL,RESIDENCE_MALE18,RESIDENCE_FEMALE18,RESIDENCE_CHILDREN,RESIDENCE_INFANT,INCOME,Q94,Q95,Q96,Q97,Q97,Q97_5_TEXT,Q111,Q104,Q105,Q105_3_TEXT,Q98_1_1,Q98_1_2,Q98_1_3,Q98_1_4,Q98_1_5,Q98_1_6,Q98_1_7,Q98_1_8,Q98_1_9,Q98_2_1,Q98_2_2,Q98_2_3,Q98_2_4,Q98_2_5,Q98_2_6,Q98_2_7,Q98_2_8,Q98_2_9,Q103_1,Q103_2,Q103_3,Q103_4,Q103_5,Q102,Q107)
+
+
+```
+
+
+```{r}
+#install.packages('descr')
+library(descr)
+#https://www.statmethods.net/stats/frequencies.html
+#stats summary
+qualtricsstats <- qualtricsprocessing
+
+
+qualtricsstats$YOB <- as.numeric(qualtricsstats$YOB)
+
+YOB <- 2019-qualtricsstats$YOB
+qualtricsstats$YOB <- YOB
+
+#under18,18-24,25-34,35-49,50-64, 65+
+qualtricsprocessing$YOB <- as.numeric(qualtricsprocessing$YOB)
+YOB <- 2019-qualtricsprocessing$YOB
+qualtricsprocessing$YOB <- YOB
+
+
+#Gender
+#remove gender classified as "others""
+#qualtricsprocessing <- qualtricsprocessing[!grepl("Other", qualtricsprocessing$GENDER),]
+qualtricsprocessing$GENDER[qualtricsprocessing$GENDER=="Male" ] <- 1
+qualtricsprocessing$GENDER[qualtricsprocessing$GENDER=="Female" ] <- 2
+qualtricsprocessing$GENDER[qualtricsprocessing$GENDER=="Other" ] <- 1
+#outlier, classify as male
+
+#classify race into categories
+#classify as white and non-white
+qualtricsprocessing$RACEETH[qualtricsprocessing$RACEETH=="White or Caucasian" ] <- 1
+qualtricsprocessing$RACEETH[qualtricsprocessing$RACEETH=="Hispanic" ] <- 2
+qualtricsprocessing$RACEETH[qualtricsprocessing$RACEETH=="Black or African American" ] <- 2
+qualtricsprocessing$RACEETH[qualtricsprocessing$RACEETH=="American Indian or Alaska Native" ] <- 2
+qualtricsprocessing$RACEETH[qualtricsprocessing$RACEETH=="Arab" ] <- 2
+qualtricsprocessing$RACEETH[qualtricsprocessing$RACEETH=="Asian" ] <- 2
+qualtricsprocessing$RACEETH[qualtricsprocessing$RACEETH=="Native Hawaiian or Pacific Islander" ] <- 2
+qualtricsprocessing$RACEETH[qualtricsprocessing$RACEETH=="Other Middle Eastern" ] <- 2
+qualtricsprocessing$RACEETH[qualtricsprocessing$RACEETH=="Other/Multiracial (please specify)" ] <- 2
+
+#MaritalStatus
+#classify as married or not married
+qualtricsprocessing$MARITALSTATUS[qualtricsprocessing$MARITALSTATUS=="Married" ] <- 1
+qualtricsprocessing$MARITALSTATUS[qualtricsprocessing$MARITALSTATUS=="Never married" ] <- 2
+qualtricsprocessing$MARITALSTATUS[qualtricsprocessing$MARITALSTATUS=="Divorced" ] <- 2
+qualtricsprocessing$MARITALSTATUS[qualtricsprocessing$MARITALSTATUS=="Widowed" ] <- 2
+qualtricsprocessing$MARITALSTATUS[qualtricsprocessing$MARITALSTATUS=="Separated" ] <- 2
+
+#Education level
+#https://www.bls.gov/emp/documentation/education/tech.htm 
+qualtricsprocessing$EDUCATION[qualtricsprocessing$EDUCATION=="Graduate degree" ] <- 5
+qualtricsprocessing$EDUCATION[qualtricsprocessing$EDUCATION=="Bachelor's or other 4-year college degree" ] <- 4
+qualtricsprocessing$EDUCATION[qualtricsprocessing$EDUCATION=="Associate's or other 2-year college degree" ] <- 3
+qualtricsprocessing$EDUCATION[qualtricsprocessing$EDUCATION=="Some college" ] <- 2
+qualtricsprocessing$EDUCATION[qualtricsprocessing$EDUCATION=="High school" ] <- 2
+qualtricsprocessing$EDUCATION[qualtricsprocessing$EDUCATION=="Did not finish high school" ] <- 1
+
+#Employment
+qualtricsprocessing$EMPLOYED[qualtricsprocessing$EMPLOYED=="Yes, full-time (32 hours or more per week)" ] <- 3
+qualtricsprocessing$EMPLOYED[qualtricsprocessing$EMPLOYED=="Yes, part-time (less than 32 hours per week)" ] <- 2
+qualtricsprocessing$EMPLOYED[qualtricsprocessing$EMPLOYED=="No" ] <- 1
+
+#ResidenceType
+#own/rent
+qualtricsprocessing$RESIDENCETYPE[qualtricsprocessing$RESIDENCETYPE=="Own a single family home" ] <- 1
+qualtricsprocessing$RESIDENCETYPE[qualtricsprocessing$RESIDENCETYPE=="Own an apartment or condo" ] <- 1
+qualtricsprocessing$RESIDENCETYPE[qualtricsprocessing$RESIDENCETYPE=="Rent a single family home" ] <- 2
+qualtricsprocessing$RESIDENCETYPE[qualtricsprocessing$RESIDENCETYPE=="Rent an apartment or condo" ] <- 2
+
+#UrbanRural
+qualtricsprocessing$URBANRURAL[qualtricsprocessing$URBANRURAL=="More urban" ] <- 2
+qualtricsprocessing$URBANRURAL[qualtricsprocessing$URBANRURAL=="More rural" ] <- 1
+
+#Format the number of residence
+#male
+qualtricsprocessing[343,10] <- 0#replace answerno
+qualtricsprocessing[268,10] <- 1#replace matt
+qualtricsprocessing$RESIDENCE_MALE18[qualtricsprocessing$RESIDENCE_MALE18=="0                                                                                                                                                                                                                                                              "] <- 0
+qualtricsprocessing$RESIDENCE_MALE18[qualtricsprocessing$RESIDENCE_MALE18=="1                                                                                                                                                                                                                                                              "] <- 1
+
+qualtricsprocessing$RESIDENCE_MALE18[qualtricsprocessing$RESIDENCE_MALE18=="2                                                                                                                                                                                                                                                              "] <- 2
+ qualtricsprocessing$RESIDENCE_MALE18[qualtricsprocessing$RESIDENCE_MALE18=="3                                                                                                                                                                                                                                                              "] <- 3
+                                                                                                              qualtricsprocessing$RESIDENCE_MALE18[qualtricsprocessing$RESIDENCE_MALE18=="4                                                                                                                                                                                                                                                              "] <- 4
+                                                                                                              
+qualtricsprocessing$RESIDENCE_MALE18[qualtricsprocessing$RESIDENCE_MALE18=="5                                                                                                                                                                                                                                                              "] <- 5
+
+qualtricsprocessing$RESIDENCE_MALE18[qualtricsprocessing$RESIDENCE_MALE18=="45                                                                                                                                                                                                                                                             "] <- 45
+qualtricsprocessing$RESIDENCE_MALE18[qualtricsprocessing$RESIDENCE_MALE18=="36                                                                                                                                                                                                                                                             "] <- 36
+#Female                                                                                                 
+qualtricsprocessing$RESIDENCE_FEMALE18[qualtricsprocessing$RESIDENCE_FEMALE18=="0                                                                                                                                                                                                                                                              "] <- 0
+qualtricsprocessing$RESIDENCE_FEMALE18[qualtricsprocessing$RESIDENCE_FEMALE18=="1                                                                                                                                                                                                                                                              "] <- 1
+
+qualtricsprocessing$RESIDENCE_FEMALE18[qualtricsprocessing$RESIDENCE_FEMALE18=="2                                                                                                                                                                                                                                                              "] <- 2
+ qualtricsprocessing$RESIDENCE_FEMALE18[qualtricsprocessing$RESIDENCE_FEMALE18=="3                                                                                                                                                                                                                                                              "] <- 3
+                                                                                                              qualtricsprocessing$RESIDENCE_FEMALE18[qualtricsprocessing$RESIDENCE_FEMALE18=="4                                                                                                                                                                                                                                                              "] <- 4                                                                                                         
+qualtricsprocessing$RESIDENCE_FEMALE18[qualtricsprocessing$RESIDENCE_FEMALE18=="12                                                                                                                                                                                                                                                             "] <- 12
+
+qualtricsprocessing$RESIDENCE_FEMALE18[qualtricsprocessing$RESIDENCE_FEMALE18=="no                                                                                                                                                                                                                                                             "] <- 0
+
+qualtricsprocessing$RESIDENCE_FEMALE18[qualtricsprocessing$RESIDENCE_FEMALE18=="Q                                                                                                                                                                                                                                                              "] <- 1
+
+qualtricsprocessing$RESIDENCE_FEMALE18[qualtricsprocessing$RESIDENCE_FEMALE18=="Chanelle                                                                                                                                                                                                                                                       "] <- 1
+
+#children
+qualtricsprocessing$RESIDENCE_CHILDREN[qualtricsprocessing$RESIDENCE_CHILDREN=="0                                                                                                                                                                                                                                                              "] <- 0
+qualtricsprocessing$RESIDENCE_CHILDREN[qualtricsprocessing$RESIDENCE_CHILDREN=="1                                                                                                                                                                                                                                                              "] <- 1
+
+qualtricsprocessing$RESIDENCE_CHILDREN[qualtricsprocessing$RESIDENCE_CHILDREN=="2                                                                                                                                                                                                                                                              "] <- 2
+ qualtricsprocessing$RESIDENCE_CHILDREN[qualtricsprocessing$RESIDENCE_CHILDREN=="3                                                                                                                                                                                                                                                              "] <- 3
+                                                                                                              qualtricsprocessing$RESIDENCE_CHILDREN[qualtricsprocessing$RESIDENCE_CHILDREN=="4                                                                                                                                                                                                                                                              "] <- 4                                                                                                         
+qualtricsprocessing$RESIDENCE_CHILDREN[qualtricsprocessing$RESIDENCE_CHILDREN=="15                                                                                                                                                                                                                                                             "] <- 15
+
+qualtricsprocessing$RESIDENCE_CHILDREN[qualtricsprocessing$RESIDENCE_CHILDREN=="no                                                                                                                                                                                                                                                             "] <- 0
+
+qualtricsprocessing$RESIDENCE_CHILDREN[qualtricsprocessing$RESIDENCE_CHILDREN=="None                                                                                                                                                                                                                                                           "] <- 0
+
+qualtricsprocessing$RESIDENCE_CHILDREN[qualtricsprocessing$RESIDENCE_CHILDREN=="Evan                                                                                                                                                                                                                                                           "] <- 1
+
+qualtricsprocessing$RESIDENCE_CHILDREN[qualtricsprocessing$RESIDENCE_CHILDREN=="00                                                                                                                                                                                                                                                             "] <- 0
+
+#infant
+qualtricsprocessing$RESIDENCE_INFANT[qualtricsprocessing$RESIDENCE_INFANT=="0                                                                                                                                                                                                                                                              "] <- 0
+qualtricsprocessing$RESIDENCE_INFANT[qualtricsprocessing$RESIDENCE_INFANT=="1                                                                                                                                                                                                                                                              "] <- 1
+
+qualtricsprocessing$RESIDENCE_INFANT[qualtricsprocessing$RESIDENCE_INFANT=="2                                                                                                                                                                                                                                                              "] <- 2
+ qualtricsprocessing$RESIDENCE_INFANT[qualtricsprocessing$RESIDENCE_INFANT=="035 000                                                                                                                                                                                                                                                        "] <- 0
+                                                                                                              qualtricsprocessing$RESIDENCE_INFANT[qualtricsprocessing$RESIDENCE_INFANT=="Matthew                                                                                                                                                                                                                                                        "] <- 1                                                                                                         
+qualtricsprocessing$RESIDENCE_INFANT[qualtricsprocessing$RESIDENCE_INFANT=="P                                                                                                                                                                                                                                                              "] <- 1
+
+qualtricsprocessing$RESIDENCE_INFANT[qualtricsprocessing$RESIDENCE_INFANT=="no                                                                                                                                                                                                                                                             "] <- 0
+
+
+
+qualtricsprocessing$RESIDENCE_MALE18 <- as.numeric(qualtricsprocessing$RESIDENCE_MALE18)
+qualtricsprocessing$RESIDENCE_FEMALE18 <- as.numeric(qualtricsprocessing$RESIDENCE_FEMALE18)
+qualtricsprocessing$RESIDENCE_CHILDREN <- as.numeric(qualtricsprocessing$RESIDENCE_CHILDREN)
+qualtricsprocessing$RESIDENCE_INFANT <- as.numeric(qualtricsprocessing$RESIDENCE_INFANT)
+
+     
+qualtricsprocessing<-qualtricsprocessing %>%
+   replace(is.na(.), 0) %>%
+   mutate(TOTALRESIDENCE = rowSums(.[10:13]))
+
+#Q94,How many times per day do you eat meat?
+qualtricsprocessing$Q94[qualtricsprocessing$Q94=="1-2 times per day" ] <- 1
+qualtricsprocessing$Q94[qualtricsprocessing$Q94=="2-3 times per day" ] <- 2
+qualtricsprocessing$Q94[qualtricsprocessing$Q94=="I do not eat meat" ] <- 0
+qualtricsprocessing$Q94[qualtricsprocessing$Q94=="More than 3 times per day" ] <- 3
+
+#Q95,Do you eat more home-prepared meals or meals from restaurants?
+qualtricsprocessing$Q95[qualtricsprocessing$Q95=="I always eat home-prepared meals" ] <- 5
+qualtricsprocessing$Q95[qualtricsprocessing$Q95=="I always eat meals from restaurants" ] <- 1
+qualtricsprocessing$Q95[qualtricsprocessing$Q95=="I eat as many home prepared meals as meals from restaurants" ] <- 3
+qualtricsprocessing$Q95[qualtricsprocessing$Q95=="I eat more home prepared meals than meals from restaurants" ] <- 4
+qualtricsprocessing$Q95[qualtricsprocessing$Q95=="I eat more meals from restaurants than meals prepared at home" ] <- 2
+
+#Q96 - How many times per day do you eat leafy greens (lettuce, spinach etc)?
+qualtricsprocessing$Q96[qualtricsprocessing$Q96=="1-2 times per day" ] <- 1
+qualtricsprocessing$Q96[qualtricsprocessing$Q96=="2-3 times per day" ] <- 2
+qualtricsprocessing$Q96[qualtricsprocessing$Q96=="Less than 1 time per day" ] <- 3
+qualtricsprocessing$Q96[qualtricsprocessing$Q96=="More than 3 times per day" ] <- 4
+
+#Q97 - Where do you shop for groceries most often? - Selected Choice
+qualtricsprocessing$Q97[qualtricsprocessing$Q97=="Conventional grocery store chains (e.g. Meijer, Walgreens, Walmart)" ] <- 1
+qualtricsprocessing$Q97[qualtricsprocessing$Q97=="Local grocery stores (e.g. farmer's market, Horrrocks, Harmon's)" ] <- 2
+qualtricsprocessing$Q97[qualtricsprocessing$Q97=="Organic grocery chains (e.g. Whole Foods)" ] <- 2
+qualtricsprocessing$Q97[qualtricsprocessing$Q97=="International food stores (e.g. Chinese, Indian, Korean, Japanese, Mexican supermarkets)" ] <- 2
+qualtricsprocessing$Q97[qualtricsprocessing$Q97=="Other" ] <- 2
+
+Q97TEXT <- unique(qualtricsprocessing$Q97_5_TEXT) %>% as.matrix()
+#View(Q97TEXT)
+
+#Q111 - How often do you wash your fresh produce?
+qualtricsprocessing$Q111[qualtricsprocessing$Q111=="Always" ] <- 3
+qualtricsprocessing$Q111[qualtricsprocessing$Q111=="Sometimes" ] <- 2
+qualtricsprocessing$Q111[qualtricsprocessing$Q111=="Never" ] <- 1
+
+#Q104 - How often do you cook your fresh produce (vegetables)?
+qualtricsprocessing$Q104[qualtricsprocessing$Q104=="Always" ] <- 3
+qualtricsprocessing$Q104[qualtricsprocessing$Q104=="Sometimes" ] <- 2
+qualtricsprocessing$Q104[qualtricsprocessing$Q104=="Never" ] <- 1
+
+#Q105 - If you cook your fresh produce, what is the primary reason -Selected Choice
+qualtricsprocessing$Q105[qualtricsprocessing$Q105=="Tastes better" ] <- 1
+qualtricsprocessing$Q105[qualtricsprocessing$Q105=="Food safety" ] <- 2
+qualtricsprocessing$Q105[is.na(qualtricsprocessing$Q105)] <- 3
+qualtricsprocessing$Q105[qualtricsprocessing$Q105=="Other" ] <- 3
+qualtricsprocessing$Q105[qualtricsprocessing$Q105=="I do not cook my produce" ] <- 3
+qualtricsprocessing$Q105[qualtricsprocessing$Q105=="0" ] <- 3
+
+Q105TEXT <- unique(qualtricsprocessing$Q105_3_TEXT) %>% as.matrix() ########DOUBLE CHECK DUMMY
+#View(Q105TEXT)
+
+#Q102 - Have you had food-borne disease in the past 24 months?
+qualtricsprocessing$Q102[qualtricsprocessing$Q102=="Yes" ] <- 1
+qualtricsprocessing$Q102[qualtricsprocessing$Q102=="No" ] <- 2
+
+#Q107 - Are you aware that raw chicken in the market contains Salmonella and has to be fully cooked before eaten?
+qualtricsprocessing$Q107[qualtricsprocessing$Q107=="Yes" ] <- 1
+qualtricsprocessing$Q107[qualtricsprocessing$Q107=="No" ] <- 2
+
+
+#Total Residence>=4 all counted as 4
+unique(qualtricsprocessing$TOTALRESIDENCE)
+qualtricsprocessing$TOTALRESIDENCE[qualtricsprocessing$TOTALRESIDENCE==5 ] <- 4
+qualtricsprocessing$TOTALRESIDENCE[qualtricsprocessing$TOTALRESIDENCE==6 ] <- 4
+qualtricsprocessing$TOTALRESIDENCE[qualtricsprocessing$TOTALRESIDENCE==7 ] <- 4
+qualtricsprocessing$TOTALRESIDENCE[qualtricsprocessing$TOTALRESIDENCE==8 ] <- 4
+qualtricsprocessing$TOTALRESIDENCE[qualtricsprocessing$TOTALRESIDENCE==58 ] <- 4
+qualtricsprocessing$TOTALRESIDENCE[qualtricsprocessing$TOTALRESIDENCE==15 ] <- 4
+qualtricsprocessing$TOTALRESIDENCE[qualtricsprocessing$TOTALRESIDENCE==36 ] <- 4
+qualtricsprocessing$TOTALRESIDENCE[qualtricsprocessing$TOTALRESIDENCE==0 ] <- 1
+```
+
+
+```{r}
+####Willingness to buy and pay, Yes-1; NO-0; Do not care -NA
+#98_1_1 WTB
+#98_2_1 WTP
+for (i in 1:nrow(qualtricsprocessing)){
+  for (j in 24:41){
+    if (qualtricsprocessing[i,j]=="Yes"){
+      qualtricsprocessing[i,j]=1
+    }
+    else if (qualtricsprocessing[i,j]=="No"){
+      qualtricsprocessing[i,j]=0
+    }
+    else
+    qualtricsprocessing[i,j]=NA
+  }
+}
+
+#Knowledge of foodborne disease
+for (i in 1:nrow(qualtricsprocessing)){
+  for (j in 42:46){
+    if (qualtricsprocessing[i,j]=="Not at all severe"){
+      qualtricsprocessing[i,j]=1
+      }
+    else if(qualtricsprocessing[i,j]=="Slightly Severe"){
+      qualtricsprocessing[i,j]=2}
+    else if(qualtricsprocessing[i,j]=="Somewhat Severe"){
+      qualtricsprocessing[i,j]=3}
+    else if(qualtricsprocessing[i,j]=="Very Severe"){
+      qualtricsprocessing[i,j]=4}
+    else if(qualtricsprocessing[i,j]=="Extremely Severe"){
+      qualtricsprocessing[i,j]=5}
+    else if(qualtricsprocessing[i,j]=="I do not know"){
+      qualtricsprocessing[i,j]=0}
+}}
+
+
+###
+#qualtricsprocessing_completecases <- qualtricsprocessing[complete.cases(qualtricsprocessing[ , 24:41]),]
+###only247 participants, not good
+
+
+Qualtricsdeep <- qualtricsprocessing %>% select(-ZIP,-RESIDENCE_MALE18,-RESIDENCE_FEMALE18,-RESIDENCE_CHILDREN,-RESIDENCE_INFANT,-Q97_5_TEXT,-Q105_3_TEXT,-INCOME,-Q98_1_6,-Q98_2_6)
+
+for (i in 1:nrow(Qualtricsdeep)){
+  for (j in 1:ncol(Qualtricsdeep)){
+    as.numeric(Qualtricsdeep[i,j])
+  }
+}
+
+#Qualtricsdeep <- data.matrix(Qualtricsdeep)
+#write.csv(Qualtricsdeep, file = "Qualtricsdeepstats2021.csv")
+#View(Qualtricsdeep)
+
+###REMOVE NA for I don't know in dependent outcome Y###
+#98_1_6 was removed due to irrelevant to study
+Q98_1_1 <- Qualtricsdeep[,-c(17:31)]
+Q98_1_1 <- Q98_1_1[complete.cases(Q98_1_1[ , 16]),] %>% as.data.frame()
+Q98_1_1[] <- lapply(Q98_1_1, function(x) as.numeric(as.character(x)))
+
+
+Q98_1_2 <- Qualtricsdeep[,-c(16,18:31)]
+Q98_1_2 <- Q98_1_2[complete.cases(Q98_1_2[ , 16]),] %>% as.data.frame()
+Q98_1_2[] <- lapply(Q98_1_2, function(x) as.numeric(as.character(x)))
+
+Q98_1_3 <- Qualtricsdeep[,-c(16:17,19:31)]
+Q98_1_3 <- Q98_1_3[complete.cases(Q98_1_3[ , 16]),] %>% as.data.frame()
+Q98_1_3[] <- lapply(Q98_1_3, function(x) as.numeric(as.character(x)))
+
+Q98_1_4 <- Qualtricsdeep[,-c(16:18,20:31)]
+Q98_1_4 <- Q98_1_4[complete.cases(Q98_1_4[ , 16]),] %>% as.data.frame()
+Q98_1_4[] <- lapply(Q98_1_4, function(x) as.numeric(as.character(x)))
+
+Q98_1_5 <- Qualtricsdeep[,-c(16:19,21:31)]
+Q98_1_5 <- Q98_1_5[complete.cases(Q98_1_5[ , 16]),] %>% as.data.frame()
+Q98_1_5[] <- lapply(Q98_1_5, function(x) as.numeric(as.character(x)))
+
+Q98_1_7 <- Qualtricsdeep[,-c(16:20,22:31)]
+Q98_1_7 <- Q98_1_7[complete.cases(Q98_1_7[ , 16]),] %>% as.data.frame()
+Q98_1_7[] <- lapply(Q98_1_7, function(x) as.numeric(as.character(x)))
+
+Q98_1_8 <- Qualtricsdeep[,-c(16:21,23:31)]
+Q98_1_8 <- Q98_1_8[complete.cases(Q98_1_8[ , 16]),] %>% as.data.frame()
+Q98_1_8[] <- lapply(Q98_1_8, function(x) as.numeric(as.character(x)))
+
+Q98_1_9 <- Qualtricsdeep[,-c(16:22,24:31)]
+Q98_1_9 <- Q98_1_9[complete.cases(Q98_1_9[ , 16]),] %>% as.data.frame()
+Q98_1_9[] <- lapply(Q98_1_9, function(x) as.numeric(as.character(x)))
+
+Q98_2_1 <- Qualtricsdeep[,-c(16:23,25:31)]
+Q98_2_1 <- Q98_2_1[complete.cases(Q98_2_1[ , 16]),] %>% as.data.frame()
+Q98_2_1[] <- lapply(Q98_2_1, function(x) as.numeric(as.character(x)))
+
+Q98_2_2 <- Qualtricsdeep[,-c(16:24,26:31)]
+Q98_2_2 <- Q98_2_2[complete.cases(Q98_2_2[ , 16]),] %>% as.data.frame()
+Q98_2_2[] <- lapply(Q98_2_2, function(x) as.numeric(as.character(x)))
+
+Q98_2_3 <- Qualtricsdeep[,-c(16:25,27:31)]
+Q98_2_3 <- Q98_2_3[complete.cases(Q98_2_3[ , 16]),] %>% as.data.frame()
+Q98_2_3[] <- lapply(Q98_2_3, function(x) as.numeric(as.character(x)))
+
+Q98_2_4 <- Qualtricsdeep[,-c(16:26,28:31)]
+Q98_2_4 <- Q98_2_4[complete.cases(Q98_2_4[ , 16]),] %>% as.data.frame()
+Q98_2_4[] <- lapply(Q98_2_4, function(x) as.numeric(as.character(x)))
+
+Q98_2_5 <- Qualtricsdeep[,-c(16:27,29:31)]
+Q98_2_5 <- Q98_2_5[complete.cases(Q98_2_5[ , 16]),] %>% as.data.frame()
+Q98_2_5[] <- lapply(Q98_2_5, function(x) as.numeric(as.character(x)))
+
+Q98_2_7 <- Qualtricsdeep[,-c(16:28,30:31)]
+Q98_2_7 <- Q98_2_7[complete.cases(Q98_2_7[ , 16]),] %>% as.data.frame()
+Q98_2_7[] <- lapply(Q98_2_7, function(x) as.numeric(as.character(x)))
+
+Q98_2_8 <- Qualtricsdeep[,-c(16:29,31)]
+Q98_2_8 <- Q98_2_8[complete.cases(Q98_2_8[ , 16]),] %>% as.data.frame()
+Q98_2_8[] <- lapply(Q98_2_8, function(x) as.numeric(as.character(x)))
+
+Q98_2_9 <- Qualtricsdeep[,-c(16:30)]
+Q98_2_9 <- Q98_2_9[complete.cases(Q98_2_9[ , 16]),] %>% as.data.frame()
+Q98_2_9[] <- lapply(Q98_2_9, function(x) as.numeric(as.character(x)))
+
+```
+
+
+```{r}
+#install.packages("stats")
+#install.packages("AER") applied econometrics in R
+#install.packages("HMDA")
+#install.packages("lmtest")
+#install.packages("sandwich")
+#install.packages("fastDummies")
+#install.packages("stargazer")
+#install.packages("MASS")
+#install.packages("mvord")
+library("stats")
+library("lmtest")
+library("sandwich")
+library("fastDummies")
+library("stargazer")
+library("MASS")
+library("mvord")
+library(stargazer)
+
+Qualtricsdeep <- as.data.frame(Qualtricsdeep)
+
+```
+
+
+```{r}
+#install.packages("DescTools")
+library(descr)
+library("DescTools")
+
+#WTB Probit all
+Q98_1_1_STATall <- glm(Q98_1_1 ~ factor(GENDER) + factor(RACEETH) + factor(URBANRURAL)+TOTALRESIDENCE+EMPLOYED+RESIDENCETYPE+EDUCATION+YOB+Q94+Q96+factor(Q97) +Q111+Q104+factor(Q105)+Q95+factor(Q102)+factor(Q107)+Q103_1+Q103_2+Q103_3+Q103_4+Q103_5, family=binomial(link="probit"), data=Q98_1_1)
+
+Q98_1_2_STATall <- glm(Q98_1_2 ~ factor(GENDER) + factor(RACEETH) + factor(URBANRURAL)+TOTALRESIDENCE+EMPLOYED+RESIDENCETYPE+EDUCATION+YOB+Q94+Q96+factor(Q97) +Q111+Q104+factor(Q105)+Q95+factor(Q102)+factor(Q107)+Q103_1+Q103_2+Q103_3+Q103_4+Q103_5, family=binomial(link="probit"), data=Q98_1_2)
+
+Q98_1_3_STATall <- glm(Q98_1_3 ~ factor(GENDER) + factor(RACEETH) + factor(URBANRURAL)+TOTALRESIDENCE+EMPLOYED+RESIDENCETYPE+EDUCATION+YOB+Q94+Q96+factor(Q97) +Q111+Q104+factor(Q105)+Q95+factor(Q102)+factor(Q107)+Q103_1+Q103_2+Q103_3+Q103_4+Q103_5, family=binomial(link="probit"), data=Q98_1_3)
+
+Q98_1_4_STATall <- glm(Q98_1_4 ~ factor(GENDER) + factor(RACEETH) + factor(URBANRURAL)+TOTALRESIDENCE+EMPLOYED+RESIDENCETYPE+EDUCATION+YOB+Q94+Q96+factor(Q97) +Q111+Q104+factor(Q105)+Q95+factor(Q102)+factor(Q107)+Q103_1+Q103_2+Q103_3+Q103_4+Q103_5, family=binomial(link="probit"), data=Q98_1_4)
+
+Q98_1_5_STATall <- glm(Q98_1_5 ~ factor(GENDER) + factor(RACEETH) + factor(URBANRURAL)+TOTALRESIDENCE+EMPLOYED+RESIDENCETYPE+EDUCATION+YOB+Q94+Q96+factor(Q97) +Q111+Q104+factor(Q105)+Q95+factor(Q102)+factor(Q107)+Q103_1+Q103_2+Q103_3+Q103_4+Q103_5, family=binomial(link="probit"), data=Q98_1_5)
+
+Q98_1_7_STATall <- glm(Q98_1_7 ~ factor(GENDER) + factor(RACEETH) + factor(URBANRURAL)+TOTALRESIDENCE+EMPLOYED+RESIDENCETYPE+EDUCATION+YOB+Q94+Q96+factor(Q97) +Q111+Q104+factor(Q105)+Q95+factor(Q102)+factor(Q107)+Q103_1+Q103_2+Q103_3+Q103_4+Q103_5, family=binomial(link="probit"), data=Q98_1_7)
+
+Q98_1_8_STATall <- glm(Q98_1_8 ~ factor(GENDER) + factor(RACEETH) + factor(URBANRURAL)+TOTALRESIDENCE+EMPLOYED+RESIDENCETYPE+EDUCATION+YOB+Q94+Q96+factor(Q97) +Q111+Q104+factor(Q105)+Q95+factor(Q102)+factor(Q107)+Q103_1+Q103_2+Q103_3+Q103_4+Q103_5, family=binomial(link="probit"), data=Q98_1_8)
+
+Q98_1_9_STATall <- glm(Q98_1_9 ~ factor(GENDER) + factor(RACEETH) + factor(URBANRURAL)+TOTALRESIDENCE+EMPLOYED+RESIDENCETYPE+EDUCATION+YOB+Q94+Q96+factor(Q97) +Q111+Q104+factor(Q105)+Q95+factor(Q102)+factor(Q107)+Q103_1+Q103_2+Q103_3+Q103_4+Q103_5, family=binomial(link="probit"), data=Q98_1_9)
+
+
+#summary(Q98_1_1_STATall)
+#TestpseudoR2
+with(Q98_1_1_STATall,Q98_1_2_STATall,null.deviance - deviance)
+PseudoR2(Q98_1_1_STATall, which="all")
+PseudoR2(Q98_1_2_STATall, which="all")
+PseudoR2(Q98_1_3_STATall, which="all")
+PseudoR2(Q98_1_4_STATall, which="all")
+PseudoR2(Q98_1_5_STATall, which="all")
+PseudoR2(Q98_1_7_STATall, which="all")
+PseudoR2(Q98_1_8_STATall, which="all")
+PseudoR2(Q98_1_9_STATall, which="all")
+par(mfrow = c(2, 2),mar=c(1,1,1,1))
+plot(Q98_1_1_STATall)
+
+#Test multicollinerity 
+#install.packages("performance")
+#https://easystats.github.io/blog/posts/performance_check_collinearity/
+#https://stats.idre.ucla.edu/stata/faq/how-can-i-check-for-collinearity-in-survey-regression/
+#VIF=1/(1-Rj^2)
+#tolerance=1-R^2
+library(performance)
+
+check_collinearity(Q98_1_1_STATall)
+check_collinearity(Q98_1_2_STATall)
+check_collinearity(Q98_1_3_STATall)
+check_collinearity(Q98_1_4_STATall)
+check_collinearity(Q98_1_5_STATall)
+check_collinearity(Q98_1_7_STATall)
+check_collinearity(Q98_1_8_STATall)
+check_collinearity(Q98_1_9_STATall)
+check_collinearity(Q98_1_9_STATall)
+check_collinearity(Q98_1_9_STATall)
+
+
+stargazer(Q98_1_1_STATall, Q98_1_2_STATall,Q98_1_3_STATall,Q98_1_4_STATall,Q98_1_5_STATall,Q98_1_7_STATall, Q98_1_8_STATall,Q98_1_9_STATall, type="text", out="probitmodel_wtb_all.html", title = "Participants' WTB using Probit Regression",dep.var.labels   = c("USDA","NoAnti","NoMedAnti","NoHormone","Local","FreeRange","Brand","NoBrand"),align = TRUE)
+
+
+stargazer(Q98_1_1_STATall, Q98_1_2_STATall,Q98_1_3_STATall,Q98_1_4_STATall,Q98_1_5_STATall,Q98_1_7_STATall, Q98_1_8_STATall,Q98_1_9_STATall, type="text", out="probitmodel_wtb_all.html", title = "Participants' WTB using Probit Regression",covariate.labels = c("Gender","Ethnicity","Residence Location","Household Size","Employment","Residence Type","Education","Age","How many times per day do you eat meat","How many times per day do you eat leafy greens","Grocery store choices", "How often do you wash your fresh produce","How often do you cook your fresh produce","Reason Food safety","Reason other","Do you eat more home prepared meals or meals from restaurant","Have you had foodborne disease in the past 24 months","Are you aware that raw chicken in the market contain <em> Salmonella </em>","Nontyphoidal <em> Salmonella </em>","<em> Escherichia coli </em> O157:H7","Norovirus", "<em> Staphylococcus aureus </em>","<em> Listeria monocytogenes </em>"),dep.var.labels   = c("USDA","NoAnti","NoMedAnti","NoHormone","Local","FreeRange","Brand","NoBrand"), align = TRUE)
+
+
+```
+
+
+```{r}
+#WTP probit all
+Q98_2_1_STATall <- glm(Q98_2_1 ~ factor(GENDER) + factor(RACEETH) + factor(URBANRURAL)+TOTALRESIDENCE+EMPLOYED+RESIDENCETYPE+EDUCATION+YOB+Q94+Q96+factor(Q97) +Q111+Q104+factor(Q105)+Q95+factor(Q102)+factor(Q107)+Q103_1+Q103_2+Q103_3+Q103_4+Q103_5, family=binomial(link="probit"), data=Q98_2_1)
+
+Q98_2_2_STATall <- glm(Q98_2_2 ~ factor(GENDER) + factor(RACEETH) + factor(URBANRURAL)+TOTALRESIDENCE+EMPLOYED+RESIDENCETYPE+EDUCATION+YOB+Q94+Q96+factor(Q97) +Q111+Q104+factor(Q105)+Q95+factor(Q102)+factor(Q107)+Q103_1+Q103_2+Q103_3+Q103_4+Q103_5, family=binomial(link="probit"), data=Q98_2_2)
+
+Q98_2_3_STATall <- glm(Q98_2_3 ~ factor(GENDER) + factor(RACEETH) + factor(URBANRURAL)+TOTALRESIDENCE+EMPLOYED+RESIDENCETYPE+EDUCATION+YOB+Q94+Q96+factor(Q97) +Q111+Q104+factor(Q105)+Q95+factor(Q102)+factor(Q107)+Q103_1+Q103_2+Q103_3+Q103_4+Q103_5, family=binomial(link="probit"), data=Q98_2_3)
+
+Q98_2_4_STATall <- glm(Q98_2_4 ~ factor(GENDER) + factor(RACEETH) + factor(URBANRURAL)+TOTALRESIDENCE+EMPLOYED+RESIDENCETYPE+EDUCATION+YOB+Q94+Q96+factor(Q97) +Q111+Q104+factor(Q105)+Q95+factor(Q102)+factor(Q107)+Q103_1+Q103_2+Q103_3+Q103_4+Q103_5, family=binomial(link="probit"), data=Q98_2_4)
+
+Q98_2_5_STATall <- glm(Q98_2_5 ~ factor(GENDER) + factor(RACEETH) + factor(URBANRURAL)+TOTALRESIDENCE+EMPLOYED+RESIDENCETYPE+EDUCATION+YOB+Q94+Q96+factor(Q97) +Q111+Q104+factor(Q105)+Q95+factor(Q102)+factor(Q107)+Q103_1+Q103_2+Q103_3+Q103_4+Q103_5, family=binomial(link="probit"), data=Q98_2_5)
+
+Q98_2_7_STATall <- glm(Q98_2_7 ~ factor(GENDER) + factor(RACEETH) + factor(URBANRURAL)+TOTALRESIDENCE+EMPLOYED+RESIDENCETYPE+EDUCATION+YOB+Q94+Q96+factor(Q97) +Q111+Q104+factor(Q105)+Q95+factor(Q102)+factor(Q107)+Q103_1+Q103_2+Q103_3+Q103_4+Q103_5, family=binomial(link="probit"), data=Q98_2_7)
+
+Q98_2_8_STATall <- glm(Q98_2_8 ~ factor(GENDER) + factor(RACEETH) + factor(URBANRURAL)+TOTALRESIDENCE+EMPLOYED+RESIDENCETYPE+EDUCATION+YOB+Q94+Q96+factor(Q97) +Q111+Q104+factor(Q105)+Q95+factor(Q102)+factor(Q107)+Q103_1+Q103_2+Q103_3+Q103_4+Q103_5, family=binomial(link="probit"), data=Q98_2_8)
+
+Q98_2_9_STATall <- glm(Q98_2_9 ~ factor(GENDER) + factor(RACEETH) + factor(URBANRURAL)+TOTALRESIDENCE+EMPLOYED+RESIDENCETYPE+EDUCATION+YOB+Q94+Q96+factor(Q97) +Q111+Q104+factor(Q105)+Q95+factor(Q102)+factor(Q107)+Q103_1+Q103_2+Q103_3+Q103_4+Q103_5, family=binomial(link="probit"), data=Q98_2_9)
+
+
+PseudoR2(Q98_2_1_STATall, which="all")
+PseudoR2(Q98_2_2_STATall, which="all")
+PseudoR2(Q98_2_3_STATall, which="all")
+PseudoR2(Q98_2_4_STATall, which="all")
+PseudoR2(Q98_2_5_STATall, which="all")
+PseudoR2(Q98_2_7_STATall, which="all")
+PseudoR2(Q98_2_8_STATall, which="all")
+PseudoR2(Q98_2_9_STATall, which="all")
+
+check_collinearity(Q98_2_1_STATall)
+check_collinearity(Q98_2_2_STATall)
+check_collinearity(Q98_2_3_STATall)
+check_collinearity(Q98_2_4_STATall)
+check_collinearity(Q98_2_5_STATall)
+check_collinearity(Q98_2_7_STATall)
+check_collinearity(Q98_2_8_STATall)
+check_collinearity(Q98_2_9_STATall)
+check_collinearity(Q98_2_9_STATall)
+check_collinearity(Q98_2_9_STATall)
+
+#summary(Q98_1_1_STATall)
+#with(Q98_1_1_STATall,Q98_1_2_STATall,null.deviance - deviance)
+#PseudoR2(Q98_1_1_STATall, which="all")
+#PseudoR2(Q98_1_2_STATall, which="all")
+#par(mfrow = c(2, 2),mar=c(1,1,1,1))
+#plot(Q98_1_1_STATall)
+
+
+stargazer(Q98_2_1_STATall, Q98_2_2_STATall,Q98_2_3_STATall,Q98_2_4_STATall,Q98_2_5_STATall,Q98_2_7_STATall, Q98_2_8_STATall,Q98_2_9_STATall, type="text", out="probitmodel_wtp_all.html", title = "Participants' WTP using Probit Regression", covariate.labels = c("Gender","Ethnicity","Residence Location","Household Size","Employment","Residence Type","Education","Age","How many times per day do you eat meat","How many times per day do you eat leafy greens","Grocery store choices", "How often do you wash your fresh produce","How often do you cook your fresh produce","Reason Food safety","Reason other","Do you eat more home prepared meals or meals from restaurant","Have you had foodborne disease in the past 24 months","Are you aware that raw chicken in the market contain <em> Salmonella </em>","Nontyphoidal <em> Salmonella </em>","<em> Escherichia coli </em> O157:H7","Norovirus", "<em> Staphylococcus aureus </em>","<em> Listeria monocytogenes </em>"),dep.var.labels   = c("USDA","NoAnti","NoMedAnti","NoHormone","Local","FreeRange","Brand","NoBrand"),align = TRUE)
+
+
+
+```
+
