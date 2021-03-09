@@ -1,0 +1,385 @@
+---
+title: "Machine learning data preprocessing"
+
+---
+
+
+```{r}
+setwd("Yourworking directory")
+#install.packages("foreign")
+#install.packages('pander')
+#install.packages("codebook")
+
+
+library(codebook)
+library(foreign)
+library(dplyr)
+library(stringr)
+
+filter <- dplyr::filter
+select <- dplyr::select
+qualtricsraw = read.spss("ESP804 S19.foodsafetyonly.sav", to.data.frame=TRUE)
+qualtricsraw=as.data.frame(qualtricsraw)
+qualtricsraw[] <- lapply(qualtricsraw, as.character)
+
+#Tidying data, Only for the good complete (1 and 3) and good data
+qualtricsprocessing <- qualtricsraw %>% filter(str_detect(gc, "3|1")) %>% select(YOB,GENDER,RACEETH,MARITALSTATUS,EDUCATION,EMPLOYED,ZIP,RESIDENCETYPE,URBANRURAL,RESIDENCE_MALE18,RESIDENCE_FEMALE18,RESIDENCE_CHILDREN,RESIDENCE_INFANT,INCOME,Q94,Q95,Q96,Q97,Q97,Q97_5_TEXT,Q111,Q104,Q105,Q105_3_TEXT,Q98_1_1,Q98_1_2,Q98_1_3,Q98_1_4,Q98_1_5,Q98_1_6,Q98_1_7,Q98_1_8,Q98_1_9,Q98_2_1,Q98_2_2,Q98_2_3,Q98_2_4,Q98_2_5,Q98_2_6,Q98_2_7,Q98_2_8,Q98_2_9,Q103_1,Q103_2,Q103_3,Q103_4,Q103_5,Q102,Q107)
+
+
+```
+
+
+```{r}
+#install.packages('descr')
+library(descr)
+#https://www.statmethods.net/stats/frequencies.html
+#stats summary
+qualtricsstats <- qualtricsprocessing
+
+
+#Total Residence
+#Format the number of residence
+#male
+qualtricsstats[343,10] <- 0#replace answerno
+qualtricsstats[268,10] <- 1#replace matt
+qualtricsstats$RESIDENCE_MALE18[qualtricsstats$RESIDENCE_MALE18=="0                                                                                                                                                                                                                                                              "] <- 0
+qualtricsstats$RESIDENCE_MALE18[qualtricsstats$RESIDENCE_MALE18=="1                                                                                                                                                                                                                                                              "] <- 1
+
+qualtricsstats$RESIDENCE_MALE18[qualtricsstats$RESIDENCE_MALE18=="2                                                                                                                                                                                                                                                              "] <- 2
+ qualtricsstats$RESIDENCE_MALE18[qualtricsstats$RESIDENCE_MALE18=="3                                                                                                                                                                                                                                                              "] <- 3
+                                                                                                              qualtricsstats$RESIDENCE_MALE18[qualtricsstats$RESIDENCE_MALE18=="4                                                                                                                                                                                                                                                              "] <- 4
+                                                                                                              
+qualtricsstats$RESIDENCE_MALE18[qualtricsstats$RESIDENCE_MALE18=="5                                                                                                                                                                                                                                                              "] <- 5
+
+qualtricsstats$RESIDENCE_MALE18[qualtricsstats$RESIDENCE_MALE18=="45                                                                                                                                                                                                                                                             "] <- 45
+qualtricsstats$RESIDENCE_MALE18[qualtricsstats$RESIDENCE_MALE18=="36                                                                                                                                                                                                                                                             "] <- 36
+#Female                                                                                                 
+qualtricsstats$RESIDENCE_FEMALE18[qualtricsstats$RESIDENCE_FEMALE18=="0                                                                                                                                                                                                                                                              "] <- 0
+qualtricsstats$RESIDENCE_FEMALE18[qualtricsstats$RESIDENCE_FEMALE18=="1                                                                                                                                                                                                                                                              "] <- 1
+
+qualtricsstats$RESIDENCE_FEMALE18[qualtricsstats$RESIDENCE_FEMALE18=="2                                                                                                                                                                                                                                                              "] <- 2
+ qualtricsstats$RESIDENCE_FEMALE18[qualtricsstats$RESIDENCE_FEMALE18=="3                                                                                                                                                                                                                                                              "] <- 3
+                                                                                                              qualtricsstats$RESIDENCE_FEMALE18[qualtricsstats$RESIDENCE_FEMALE18=="4                                                                                                                                                                                                                                                              "] <- 4                                                                                                         
+qualtricsstats$RESIDENCE_FEMALE18[qualtricsstats$RESIDENCE_FEMALE18=="12                                                                                                                                                                                                                                                             "] <- 12
+
+qualtricsstats$RESIDENCE_FEMALE18[qualtricsstats$RESIDENCE_FEMALE18=="no                                                                                                                                                                                                                                                             "] <- 0
+
+qualtricsstats$RESIDENCE_FEMALE18[qualtricsstats$RESIDENCE_FEMALE18=="Q                                                                                                                                                                                                                                                              "] <- 1
+
+qualtricsstats$RESIDENCE_FEMALE18[qualtricsstats$RESIDENCE_FEMALE18=="Chanelle                                                                                                                                                                                                                                                       "] <- 1
+
+#children
+qualtricsstats$RESIDENCE_CHILDREN[qualtricsstats$RESIDENCE_CHILDREN=="0                                                                                                                                                                                                                                                              "] <- 0
+qualtricsstats$RESIDENCE_CHILDREN[qualtricsstats$RESIDENCE_CHILDREN=="1                                                                                                                                                                                                                                                              "] <- 1
+
+qualtricsstats$RESIDENCE_CHILDREN[qualtricsstats$RESIDENCE_CHILDREN=="2                                                                                                                                                                                                                                                              "] <- 2
+ qualtricsstats$RESIDENCE_CHILDREN[qualtricsstats$RESIDENCE_CHILDREN=="3                                                                                                                                                                                                                                                              "] <- 3
+                                                                                                              qualtricsstats$RESIDENCE_CHILDREN[qualtricsstats$RESIDENCE_CHILDREN=="4                                                                                                                                                                                                                                                              "] <- 4                                                                                                         
+qualtricsstats$RESIDENCE_CHILDREN[qualtricsstats$RESIDENCE_CHILDREN=="15                                                                                                                                                                                                                                                             "] <- 15
+
+qualtricsstats$RESIDENCE_CHILDREN[qualtricsstats$RESIDENCE_CHILDREN=="no                                                                                                                                                                                                                                                             "] <- 0
+
+qualtricsstats$RESIDENCE_CHILDREN[qualtricsstats$RESIDENCE_CHILDREN=="None                                                                                                                                                                                                                                                           "] <- 0
+
+qualtricsstats$RESIDENCE_CHILDREN[qualtricsstats$RESIDENCE_CHILDREN=="Evan                                                                                                                                                                                                                                                           "] <- 1
+
+qualtricsstats$RESIDENCE_CHILDREN[qualtricsstats$RESIDENCE_CHILDREN=="00                                                                                                                                                                                                                                                             "] <- 0
+
+#infant
+qualtricsstats$RESIDENCE_INFANT[qualtricsstats$RESIDENCE_INFANT=="0                                                                                                                                                                                                                                                              "] <- 0
+qualtricsstats$RESIDENCE_INFANT[qualtricsstats$RESIDENCE_INFANT=="1                                                                                                                                                                                                                                                              "] <- 1
+
+qualtricsstats$RESIDENCE_INFANT[qualtricsstats$RESIDENCE_INFANT=="2                                                                                                                                                                                                                                                              "] <- 2
+ qualtricsstats$RESIDENCE_INFANT[qualtricsstats$RESIDENCE_INFANT=="035 000                                                                                                                                                                                                                                                        "] <- 0
+                                                                                                              qualtricsstats$RESIDENCE_INFANT[qualtricsstats$RESIDENCE_INFANT=="Matthew                                                                                                                                                                                                                                                        "] <- 1                                                                                                         
+qualtricsstats$RESIDENCE_INFANT[qualtricsstats$RESIDENCE_INFANT=="P                                                                                                                                                                                                                                                              "] <- 1
+
+qualtricsstats$RESIDENCE_INFANT[qualtricsstats$RESIDENCE_INFANT=="no                                                                                                                                                                                                                                                             "] <- 0
+
+
+qualtricsstats$RESIDENCE_MALE18 <- as.numeric(qualtricsprocessing$RESIDENCE_MALE18)
+qualtricsstats$RESIDENCE_FEMALE18 <- as.numeric(qualtricsprocessing$RESIDENCE_FEMALE18)
+qualtricsstats$RESIDENCE_CHILDREN <- as.numeric(qualtricsprocessing$RESIDENCE_CHILDREN)
+qualtricsstats$RESIDENCE_INFANT <- as.numeric(qualtricsprocessing$RESIDENCE_INFANT)
+
+qualtricsstats <- qualtricsstats %>%
+   replace(is.na(.), 0) %>%
+   mutate(TOTALRESIDENCE = rowSums(.[10:13]))
+
+qualtricsstats$YOB <- as.numeric(qualtricsstats$YOB)
+
+YOB <- 2019-qualtricsstats$YOB
+qualtricsstats$YOB <- YOB
+#summary(qualtricsstats$YOB)
+qualtricsstats$YOB[qualtricsstats$YOB<=18] <- '<18'
+qualtricsstats$YOB[qualtricsstats$YOB>=19 & qualtricsstats$YOB<=24] <- "19~24"
+qualtricsstats$YOB[qualtricsstats$YOB>=25 & qualtricsstats$YOB<=34] <- "25~34"
+qualtricsstats$YOB[qualtricsstats$YOB>=35 & qualtricsstats$YOB<=49] <- "35~49"
+qualtricsstats$YOB[qualtricsstats$YOB>=50 & qualtricsstats$YOB<=64] <- "50~64"
+qualtricsstats$YOB[qualtricsstats$YOB>=65 ] <- ">65"
+
+#qualtricsprocessing
+
+#under18,18-24,25-34,35-49,50-64, 65+
+qualtricsprocessing$YOB <- as.numeric(qualtricsprocessing$YOB)
+YOB <- 2019-qualtricsprocessing$YOB
+qualtricsprocessing$YOB <- YOB
+# summary(qualtricsprocessing$YOB)
+# 
+qualtricsprocessing$YOB[qualtricsprocessing$YOB<=18] <- 1
+qualtricsprocessing$YOB[qualtricsprocessing$YOB>=19 & qualtricsprocessing$YOB<=24] <- 2
+qualtricsprocessing$YOB[qualtricsprocessing$YOB>=25 & qualtricsprocessing$YOB<=34] <- 3
+qualtricsprocessing$YOB[qualtricsprocessing$YOB>=35 & qualtricsprocessing$YOB<=49] <- 4
+qualtricsprocessing$YOB[qualtricsprocessing$YOB>=50 & qualtricsprocessing$YOB<=64] <- 5
+qualtricsprocessing$YOB[qualtricsprocessing$YOB>=65 ] <- 6
+
+#Gender
+qualtricsprocessing$GENDER[qualtricsprocessing$GENDER=="Male" ] <- 3
+qualtricsprocessing$GENDER[qualtricsprocessing$GENDER=="Female" ] <- 2
+qualtricsprocessing$GENDER[qualtricsprocessing$GENDER=="Other" ] <- 1
+
+#Race
+
+#classify race into categories
+qualtricsprocessing$RACEETH[qualtricsprocessing$RACEETH=="White or Caucasian" ] <- 2
+qualtricsprocessing$RACEETH[qualtricsprocessing$RACEETH=="Hispanic" ] <- 4
+qualtricsprocessing$RACEETH[qualtricsprocessing$RACEETH=="Black or African American" ] <- 3
+qualtricsprocessing$RACEETH[qualtricsprocessing$RACEETH=="American Indian or Alaska Native" ] <- 1
+qualtricsprocessing$RACEETH[qualtricsprocessing$RACEETH=="Arab" ] <- 1
+qualtricsprocessing$RACEETH[qualtricsprocessing$RACEETH=="Asian" ] <- 1
+qualtricsprocessing$RACEETH[qualtricsprocessing$RACEETH=="Native Hawaiian or Pacific Islander" ] <- 1
+qualtricsprocessing$RACEETH[qualtricsprocessing$RACEETH=="Other Middle Eastern" ] <- 1
+qualtricsprocessing$RACEETH[qualtricsprocessing$RACEETH=="Other/Multiracial (please specify)" ] <- 1
+
+
+#MaritalStatus
+qualtricsprocessing$MARITALSTATUS[qualtricsprocessing$MARITALSTATUS=="Married" ] <- 5
+qualtricsprocessing$MARITALSTATUS[qualtricsprocessing$MARITALSTATUS=="Never married" ] <- 4
+qualtricsprocessing$MARITALSTATUS[qualtricsprocessing$MARITALSTATUS=="Divorced" ] <- 2
+qualtricsprocessing$MARITALSTATUS[qualtricsprocessing$MARITALSTATUS=="Widowed" ] <- 1
+qualtricsprocessing$MARITALSTATUS[qualtricsprocessing$MARITALSTATUS=="Separated" ] <- 3
+
+#Education level
+#https://www.bls.gov/emp/documentation/education/tech.htm 
+qualtricsprocessing$EDUCATION[qualtricsprocessing$EDUCATION=="Graduate degree" ] <- 5
+qualtricsprocessing$EDUCATION[qualtricsprocessing$EDUCATION=="Bachelor's or other 4-year college degree" ] <- 4
+qualtricsprocessing$EDUCATION[qualtricsprocessing$EDUCATION=="Associate's or other 2-year college degree" ] <- 3
+qualtricsprocessing$EDUCATION[qualtricsprocessing$EDUCATION=="Some college" ] <- 2
+qualtricsprocessing$EDUCATION[qualtricsprocessing$EDUCATION=="High school" ] <- 2
+qualtricsprocessing$EDUCATION[qualtricsprocessing$EDUCATION=="Did not finish high school" ] <- 1
+
+#Employment
+qualtricsprocessing$EMPLOYED[qualtricsprocessing$EMPLOYED=="Yes, full-time (32 hours or more per week)" ] <- 3
+qualtricsprocessing$EMPLOYED[qualtricsprocessing$EMPLOYED=="Yes, part-time (less than 32 hours per week)" ] <- 2
+qualtricsprocessing$EMPLOYED[qualtricsprocessing$EMPLOYED=="No" ] <- 1
+
+#ResidenceType
+qualtricsprocessing$RESIDENCETYPE[qualtricsprocessing$RESIDENCETYPE=="Own a single family home" ] <- 4
+qualtricsprocessing$RESIDENCETYPE[qualtricsprocessing$RESIDENCETYPE=="Own an apartment or condo" ] <- 3
+qualtricsprocessing$RESIDENCETYPE[qualtricsprocessing$RESIDENCETYPE=="Rent a single family home" ] <- 2
+qualtricsprocessing$RESIDENCETYPE[qualtricsprocessing$RESIDENCETYPE=="Rent an apartment or condo" ] <- 1
+
+#UrbanRural
+qualtricsprocessing$URBANRURAL[qualtricsprocessing$URBANRURAL=="More urban" ] <- 2
+qualtricsprocessing$URBANRURAL[qualtricsprocessing$URBANRURAL=="More rural" ] <- 1
+
+#Format the number of residence
+#male
+qualtricsprocessing[343,10] <- 0#replace answerno
+qualtricsprocessing[268,10] <- 1#replace matt
+qualtricsprocessing$RESIDENCE_MALE18[qualtricsprocessing$RESIDENCE_MALE18=="0                                                                                                                                                                                                                                                              "] <- 0
+qualtricsprocessing$RESIDENCE_MALE18[qualtricsprocessing$RESIDENCE_MALE18=="1                                                                                                                                                                                                                                                              "] <- 1
+
+qualtricsprocessing$RESIDENCE_MALE18[qualtricsprocessing$RESIDENCE_MALE18=="2                                                                                                                                                                                                                                                              "] <- 2
+ qualtricsprocessing$RESIDENCE_MALE18[qualtricsprocessing$RESIDENCE_MALE18=="3                                                                                                                                                                                                                                                              "] <- 3
+                                                                                                              qualtricsprocessing$RESIDENCE_MALE18[qualtricsprocessing$RESIDENCE_MALE18=="4                                                                                                                                                                                                                                                              "] <- 4
+                                                                                                              
+qualtricsprocessing$RESIDENCE_MALE18[qualtricsprocessing$RESIDENCE_MALE18=="5                                                                                                                                                                                                                                                              "] <- 5
+
+qualtricsprocessing$RESIDENCE_MALE18[qualtricsprocessing$RESIDENCE_MALE18=="45                                                                                                                                                                                                                                                             "] <- 45
+qualtricsprocessing$RESIDENCE_MALE18[qualtricsprocessing$RESIDENCE_MALE18=="36                                                                                                                                                                                                                                                             "] <- 36
+#Female                                                                                                 
+qualtricsprocessing$RESIDENCE_FEMALE18[qualtricsprocessing$RESIDENCE_FEMALE18=="0                                                                                                                                                                                                                                                              "] <- 0
+qualtricsprocessing$RESIDENCE_FEMALE18[qualtricsprocessing$RESIDENCE_FEMALE18=="1                                                                                                                                                                                                                                                              "] <- 1
+
+qualtricsprocessing$RESIDENCE_FEMALE18[qualtricsprocessing$RESIDENCE_FEMALE18=="2                                                                                                                                                                                                                                                              "] <- 2
+ qualtricsprocessing$RESIDENCE_FEMALE18[qualtricsprocessing$RESIDENCE_FEMALE18=="3                                                                                                                                                                                                                                                              "] <- 3
+                                                                                                              qualtricsprocessing$RESIDENCE_FEMALE18[qualtricsprocessing$RESIDENCE_FEMALE18=="4                                                                                                                                                                                                                                                              "] <- 4                                                                                                         
+qualtricsprocessing$RESIDENCE_FEMALE18[qualtricsprocessing$RESIDENCE_FEMALE18=="12                                                                                                                                                                                                                                                             "] <- 12
+
+qualtricsprocessing$RESIDENCE_FEMALE18[qualtricsprocessing$RESIDENCE_FEMALE18=="no                                                                                                                                                                                                                                                             "] <- 0
+
+qualtricsprocessing$RESIDENCE_FEMALE18[qualtricsprocessing$RESIDENCE_FEMALE18=="Q                                                                                                                                                                                                                                                              "] <- 1
+
+qualtricsprocessing$RESIDENCE_FEMALE18[qualtricsprocessing$RESIDENCE_FEMALE18=="Chanelle                                                                                                                                                                                                                                                       "] <- 1
+
+#children
+qualtricsprocessing$RESIDENCE_CHILDREN[qualtricsprocessing$RESIDENCE_CHILDREN=="0                                                                                                                                                                                                                                                              "] <- 0
+qualtricsprocessing$RESIDENCE_CHILDREN[qualtricsprocessing$RESIDENCE_CHILDREN=="1                                                                                                                                                                                                                                                              "] <- 1
+
+qualtricsprocessing$RESIDENCE_CHILDREN[qualtricsprocessing$RESIDENCE_CHILDREN=="2                                                                                                                                                                                                                                                              "] <- 2
+ qualtricsprocessing$RESIDENCE_CHILDREN[qualtricsprocessing$RESIDENCE_CHILDREN=="3                                                                                                                                                                                                                                                              "] <- 3
+                                                                                                              qualtricsprocessing$RESIDENCE_CHILDREN[qualtricsprocessing$RESIDENCE_CHILDREN=="4                                                                                                                                                                                                                                                              "] <- 4                                                                                                         
+qualtricsprocessing$RESIDENCE_CHILDREN[qualtricsprocessing$RESIDENCE_CHILDREN=="15                                                                                                                                                                                                                                                             "] <- 15
+
+qualtricsprocessing$RESIDENCE_CHILDREN[qualtricsprocessing$RESIDENCE_CHILDREN=="no                                                                                                                                                                                                                                                             "] <- 0
+
+qualtricsprocessing$RESIDENCE_CHILDREN[qualtricsprocessing$RESIDENCE_CHILDREN=="None                                                                                                                                                                                                                                                           "] <- 0
+
+qualtricsprocessing$RESIDENCE_CHILDREN[qualtricsprocessing$RESIDENCE_CHILDREN=="Evan                                                                                                                                                                                                                                                           "] <- 1
+
+qualtricsprocessing$RESIDENCE_CHILDREN[qualtricsprocessing$RESIDENCE_CHILDREN=="00                                                                                                                                                                                                                                                             "] <- 0
+
+#infant
+qualtricsprocessing$RESIDENCE_INFANT[qualtricsprocessing$RESIDENCE_INFANT=="0                                                                                                                                                                                                                                                              "] <- 0
+qualtricsprocessing$RESIDENCE_INFANT[qualtricsprocessing$RESIDENCE_INFANT=="1                                                                                                                                                                                                                                                              "] <- 1
+
+qualtricsprocessing$RESIDENCE_INFANT[qualtricsprocessing$RESIDENCE_INFANT=="2                                                                                                                                                                                                                                                              "] <- 2
+ qualtricsprocessing$RESIDENCE_INFANT[qualtricsprocessing$RESIDENCE_INFANT=="035 000                                                                                                                                                                                                                                                        "] <- 0
+                                                                                                              qualtricsprocessing$RESIDENCE_INFANT[qualtricsprocessing$RESIDENCE_INFANT=="Matthew                                                                                                                                                                                                                                                        "] <- 1                                                                                                         
+qualtricsprocessing$RESIDENCE_INFANT[qualtricsprocessing$RESIDENCE_INFANT=="P                                                                                                                                                                                                                                                              "] <- 1
+
+qualtricsprocessing$RESIDENCE_INFANT[qualtricsprocessing$RESIDENCE_INFANT=="no                                                                                                                                                                                                                                                             "] <- 0
+
+
+
+qualtricsprocessing$RESIDENCE_MALE18 <- as.numeric(qualtricsprocessing$RESIDENCE_MALE18)
+qualtricsprocessing$RESIDENCE_FEMALE18 <- as.numeric(qualtricsprocessing$RESIDENCE_FEMALE18)
+qualtricsprocessing$RESIDENCE_CHILDREN <- as.numeric(qualtricsprocessing$RESIDENCE_CHILDREN)
+qualtricsprocessing$RESIDENCE_INFANT <- as.numeric(qualtricsprocessing$RESIDENCE_INFANT)
+
+     
+qualtricsprocessing<-qualtricsprocessing %>%
+   replace(is.na(.), 0) %>%
+   mutate(TOTALRESIDENCE = rowSums(.[10:13]))
+
+#Q94,How many times per day do you eat meat?
+qualtricsprocessing$Q94[qualtricsprocessing$Q94=="1-2 times per day" ] <- 1
+qualtricsprocessing$Q94[qualtricsprocessing$Q94=="2-3 times per day" ] <- 2
+qualtricsprocessing$Q94[qualtricsprocessing$Q94=="I do not eat meat" ] <- 4
+qualtricsprocessing$Q94[qualtricsprocessing$Q94=="More than 3 times per day" ] <- 3
+
+#Q95,Do you eat more home-prepared meals or meals from restaurants?
+qualtricsprocessing$Q95[qualtricsprocessing$Q95=="I always eat home-prepared meals" ] <- 5
+qualtricsprocessing$Q95[qualtricsprocessing$Q95=="I always eat meals from restaurants" ] <- 1
+qualtricsprocessing$Q95[qualtricsprocessing$Q95=="I eat as many home prepared meals as meals from restaurants" ] <- 3
+qualtricsprocessing$Q95[qualtricsprocessing$Q95=="I eat more home prepared meals than meals from restaurants" ] <- 4
+qualtricsprocessing$Q95[qualtricsprocessing$Q95=="I eat more meals from restaurants than meals prepared at home" ] <- 2
+
+#Q96 - How many times per day do you eat leafy greens (lettuce, spinach etc)?
+qualtricsprocessing$Q96[qualtricsprocessing$Q96=="1-2 times per day" ] <- 1
+qualtricsprocessing$Q96[qualtricsprocessing$Q96=="2-3 times per day" ] <- 2
+qualtricsprocessing$Q96[qualtricsprocessing$Q96=="Less than 1 time per day" ] <- 3
+qualtricsprocessing$Q96[qualtricsprocessing$Q96=="More than 3 times per day" ] <- 4
+
+#Q97 - Where do you shop for groceries most often? - Selected Choice
+qualtricsprocessing$Q97[qualtricsprocessing$Q97=="Conventional grocery store chains (e.g. Meijer, Walgreens, Walmart)" ] <- 2
+qualtricsprocessing$Q97[qualtricsprocessing$Q97=="Local grocery stores (e.g. farmer's market, Horrrocks, Harmon's)" ] <- 4
+qualtricsprocessing$Q97[qualtricsprocessing$Q97=="Organic grocery chains (e.g. Whole Foods)" ] <- 3
+qualtricsprocessing$Q97[qualtricsprocessing$Q97=="International food stores (e.g. Chinese, Indian, Korean, Japanese, Mexican supermarkets)" ] <- 1
+qualtricsprocessing$Q97[qualtricsprocessing$Q97=="Other" ] <- 1
+
+Q97TEXT <- unique(qualtricsprocessing$Q97_5_TEXT) %>% as.matrix()
+#View(Q97TEXT)
+
+#Q111 - How often do you wash your fresh produce?
+qualtricsprocessing$Q111[qualtricsprocessing$Q111=="Always" ] <- 3
+qualtricsprocessing$Q111[qualtricsprocessing$Q111=="Sometimes" ] <- 2
+qualtricsprocessing$Q111[qualtricsprocessing$Q111=="Never" ] <- 1
+
+#Q104 - How often do you cook your fresh produce (vegetables)?
+qualtricsprocessing$Q104[qualtricsprocessing$Q104=="Always" ] <- 3
+qualtricsprocessing$Q104[qualtricsprocessing$Q104=="Sometimes" ] <- 2
+qualtricsprocessing$Q104[qualtricsprocessing$Q104=="Never" ] <- 1
+
+#Q105 - If you cook your fresh produce, what is the primary reason -Selected Choice
+qualtricsprocessing$Q105[qualtricsprocessing$Q105=="Tastes better" ] <- 1
+qualtricsprocessing$Q105[qualtricsprocessing$Q105=="Food safety" ] <- 2
+qualtricsprocessing$Q105[is.na(qualtricsprocessing$Q105)] <- 3
+qualtricsprocessing$Q105[qualtricsprocessing$Q105=="Other" ] <- 3
+qualtricsprocessing$Q105[qualtricsprocessing$Q105=="I do not cook my produce" ] <- 3
+
+Q105TEXT <- unique(qualtricsprocessing$Q105_3_TEXT) %>% as.matrix()
+#View(Q105TEXT)
+
+#Q102 - Have you had food-borne disease in the past 24 months?
+qualtricsprocessing$Q102[qualtricsprocessing$Q102=="Yes" ] <- 1
+qualtricsprocessing$Q102[qualtricsprocessing$Q102=="No" ] <- 2
+
+#Q107 - Are you aware that raw chicken in the market contains Salmonella and has to be fully cooked before eaten?
+qualtricsprocessing$Q107[qualtricsprocessing$Q107=="Yes" ] <- 1
+qualtricsprocessing$Q107[qualtricsprocessing$Q107=="No" ] <- 2
+
+
+#Total Residence>=4 all counted as 4
+unique(qualtricsprocessing$TOTALRESIDENCE)
+qualtricsprocessing$TOTALRESIDENCE[qualtricsprocessing$TOTALRESIDENCE==5 ] <- 4
+qualtricsprocessing$TOTALRESIDENCE[qualtricsprocessing$TOTALRESIDENCE==6 ] <- 4
+qualtricsprocessing$TOTALRESIDENCE[qualtricsprocessing$TOTALRESIDENCE==7 ] <- 4
+qualtricsprocessing$TOTALRESIDENCE[qualtricsprocessing$TOTALRESIDENCE==8 ] <- 4
+qualtricsprocessing$TOTALRESIDENCE[qualtricsprocessing$TOTALRESIDENCE==58 ] <- 4
+qualtricsprocessing$TOTALRESIDENCE[qualtricsprocessing$TOTALRESIDENCE==15 ] <- 4
+qualtricsprocessing$TOTALRESIDENCE[qualtricsprocessing$TOTALRESIDENCE==36 ] <- 4
+qualtricsprocessing$TOTALRESIDENCE[qualtricsprocessing$TOTALRESIDENCE==0 ] <- 1
+```
+
+
+```{r}
+####Willingness to buy and pay, Yes-2; NO-1; Do not care -0
+
+for (i in 1:nrow(qualtricsprocessing)){
+  for (j in 24:41){
+    if (qualtricsprocessing[i,j]=="Yes"){
+      qualtricsprocessing[i,j]=2
+    }
+    else if (qualtricsprocessing[i,j]=="No"){
+      qualtricsprocessing[i,j]=1
+    }
+    else
+    qualtricsprocessing[i,j]=0
+  }
+}
+
+
+# for (i in 1:nrow(qualtricsprocessing)){
+#   for (j in 24:41){
+#     if (qualtricsprocessing[i,j]=="Yes"){
+#       qualtricsprocessing[i,j]=1
+#     }
+#     else
+#     qualtricsprocessing[i,j]=0
+#   }
+# }
+
+
+#Knowledge of foodborne disease
+for (i in 1:nrow(qualtricsprocessing)){
+  for (j in 42:46){
+    if (qualtricsprocessing[i,j]=="Not at all severe"){
+      qualtricsprocessing[i,j]=1
+      }
+    else if(qualtricsprocessing[i,j]=="Slightly Severe"){
+      qualtricsprocessing[i,j]=2}
+    else if(qualtricsprocessing[i,j]=="Somewhat Severe"){
+      qualtricsprocessing[i,j]=3}
+    else if(qualtricsprocessing[i,j]=="Very Severe"){
+      qualtricsprocessing[i,j]=4}
+    else if(qualtricsprocessing[i,j]=="Extremely Severe"){
+      qualtricsprocessing[i,j]=5}
+    else if(qualtricsprocessing[i,j]=="I do not know"){
+      qualtricsprocessing[i,j]=0}
+}}
+
+Qualtricsdeep <- qualtricsprocessing %>% select(-ZIP,-RESIDENCE_MALE18,-RESIDENCE_FEMALE18,-RESIDENCE_CHILDREN,-RESIDENCE_INFANT,-Q97_5_TEXT,-Q105_3_TEXT,-INCOME,-Q98_1_6,-Q98_2_6)
+
+
+Qualtricsdeep[] <- lapply(Qualtricsdeep, function(x) as.numeric(as.character(x)))
+Qualtricsdeep <- Qualtricsdeep %>% as.data.frame()
+#Qualtricsdeep <- data.matrix(Qualtricsdeep)
+write.csv(Qualtricsdeep, file = "QualtricsdeepstatsML_2021.csv")
+View(Qualtricsdeep)
+
+
+```
+
+
